@@ -1,3 +1,3 @@
-Are you looking for [the actual game](http://branh.github.io/MarkBirthday2017)?
+Are you looking for (http://branh.github.io/MarkBirthday2017 "the actual game")?
 
-Then go on and [adventure](http://branh.github.io/MarkBirthday2017). You'll need to enable Javascript for this game to work.
+Then go on and (http://branh.github.io/MarkBirthday2017 "adventure"). You'll need to enable Javascript for this game to work.
