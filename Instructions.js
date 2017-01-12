@@ -44,6 +44,10 @@ function DisplayInstructions() {
    DisplayText(context, "to move.", 260, 170);
    
    DisplayText(context, "Press the space bar to shoot.", 40, 230);
+   DisplayText(context, "Press any key to begin.", 40, 300);
 }
 
 document.addEventListener("DOMContentLoaded", DisplayInstructions, false);
+window.addEventListener("keydown", function (e) {
+	window.location.href = "game.html";
+});
