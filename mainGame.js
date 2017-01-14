@@ -42,23 +42,37 @@ function UpdatePlayerPosition() {
    }
 }
 
+// Returns false if the bandit should be removed from the board.
 function UpdateBanditPosition(object, speed) {
    object.xPos = object.xPos - speed;
-   // TODO: Check loss condition.
-   // TODO: Check death by arrow.
+   if (object.xPos < 130) {
+      lives--;
+	  return false;
+   }
+
+   // Check death by arrow.
+   for (var i = 0; i < arrows.length && arrows[i].xPos >= object.xPos; ++i) {
+      if (arrows[i].xPos == object.xPos && arrows[i].yPos >= object.yPos && arrows[i].yPos <= (object.yPos + object.radius)) {
+         arrows.splice(i, 1);
+         return false;
+      }
+   }
+   return true;
 }
 
 function UpdatePositions() {
    UpdatePlayerPosition();
-   for (var i = 0; i < bandits.length; ++i) {
-      UpdateBanditPosition(bandits[i], 1);
-   }
-   
    while (arrows.length > 0 && arrows[0].xPos > 750) {
       arrows.shift();
    }
    for (var i = 0; i < arrows.length; ++i) {
       arrows[i].xPos = arrows[i].xPos + 1;
+   }
+   
+   for (var i = 0; i < bandits.length; ++i) {
+      if (!UpdateBanditPosition(bandits[i], 1)) {
+         bandits.splice(i, 1);
+      }
    }
 }
 
@@ -83,14 +97,30 @@ function DrawCircle(object) {
 
 function DrawObjects() {
    DrawCircle(player);
+   for (var i = 0; i < bandits.length; ++i) {
+      DrawCircle(bandit);
+   }
+   
+   
+   gameArea.context.strokeStyle = "black";
+   for (var i = 0; i < arrows.length; ++i) {
+      gameArea.context.moveTo(arrows[i].xPos - 5, arrows[i].yPos);
+      gameArea.context.lineTo(arrows[i].xPos, arrows[i].yPos);
+      gameArea.context.stroke();
+	
+      gameArea.context.moveTo(arrows[i].xPos - 2, arrows[i].yPos - 3);
+      gameArea.context.lineTo(arrows[i].xPos, arrows[i].yPos);
+      gameArea.context.lineTo(arrows[i].xPos - 2, arrows[i].yPos + 3);
+      gameArea.context.stroke();
+	}
 }
 
 document.addEventListener("DOMContentLoaded", gameArea.start, false);
 window.addEventListener("keydown", function(e) {
    if (e.keyCode == 38) {
-      player.speed = 1;
+      player.speed = -1;
    } else if (e.keyCode == 40) {
-      player.speed = -1;	   
+      player.speed = 1;	   
    } else if (e.keyCode == 32) {
       var newArrow = {
          xPos : player.xPos,
