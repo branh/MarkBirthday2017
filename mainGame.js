@@ -1,6 +1,10 @@
 var score = 0;
 var lives = 3;
 
+var banditFrequency = 150;
+var framesSinceLastBandit = 0;
+var framesSinceLastArrow = 100;
+
 var player = {
 	xPos : 130,
 	yPos : 200,
@@ -45,14 +49,16 @@ function UpdatePlayerPosition() {
 // Returns false if the bandit should be removed from the board.
 function UpdateBanditPosition(object, speed) {
    object.xPos = object.xPos - speed;
-   if (object.xPos < 130) {
+   if (object.xPos < 110) {
       lives--;
 	  return false;
    }
 
    // Check death by arrow.
    for (var i = 0; i < arrows.length && arrows[i].xPos >= object.xPos; ++i) {
-      if (arrows[i].xPos == object.xPos && arrows[i].yPos >= object.yPos && arrows[i].yPos <= (object.yPos + object.radius)) {
+      if (arrows[i].xPos >= (object.xPos - object.radius) &&
+          arrows[i].yPos >= (object.yPos - object.radius) &&
+          arrows[i].yPos <= (object.yPos + object.radius)) {
          arrows.splice(i, 1);
          return false;
       }
@@ -62,6 +68,21 @@ function UpdateBanditPosition(object, speed) {
 
 function UpdatePositions() {
    UpdatePlayerPosition();
+   framesSinceLastBandit++;
+   framesSinceLastArrow++;
+   if (framesSinceLastBandit >= banditFrequency) {
+      framesSinceLastBandit = 0;
+      banditYPos = Math.floor(400 * Math.random());
+	  var newBandit = {
+         xPos : 750,
+		 yPos : banditYPos,
+         radius: 7,
+		 color: "black",
+         pointVal : 5
+	  };
+      bandits.push(newBandit);
+   }
+   
    while (arrows.length > 0 && arrows[0].xPos > 750) {
       arrows.shift();
    }
@@ -70,7 +91,7 @@ function UpdatePositions() {
    }
    
    for (var i = 0; i < bandits.length; ++i) {
-      if (!UpdateBanditPosition(bandits[i], 1)) {
+      if (!UpdateBanditPosition(bandits[i], 0.5)) {
          bandits.splice(i, 1);
       }
    }
@@ -98,7 +119,7 @@ function DrawCircle(object) {
 function DrawObjects() {
    DrawCircle(player);
    for (var i = 0; i < bandits.length; ++i) {
-      DrawCircle(bandit);
+      DrawCircle(bandits[i]);
    }
    
    
@@ -118,16 +139,19 @@ function DrawObjects() {
 document.addEventListener("DOMContentLoaded", gameArea.start, false);
 window.addEventListener("keydown", function(e) {
    if (e.keyCode == 38) {
-      player.speed = -1;
+      player.speed = -2;
    } else if (e.keyCode == 40) {
-      player.speed = 1;	   
+      player.speed = 2;	   
    } else if (e.keyCode == 32) {
-      var newArrow = {
-         xPos : player.xPos,
-		 yPos : player.yPos,
-         length : 5,
-	  };
-      arrows.push(newArrow); 
+      if (framesSinceLastArrow > 10) {
+		 framesSinceLastArrow = 0;
+         var newArrow = {
+            xPos : player.xPos,
+		    yPos : player.yPos,
+            length : 5,
+	     };
+         arrows.push(newArrow);
+	  }
    }
 });
 window.addEventListener("keyup", function(e) {
