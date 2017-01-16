@@ -1,8 +1,9 @@
 var score = 0;
 var lives = 3;
+var gameOver = false;
 
 var banditFrequency = 150;
-var framesSinceLastBandit = 0;
+var framesSinceLastBandit = 100;
 var framesSinceLastArrow = 100;
 
 var player = {
@@ -21,19 +22,50 @@ var arrows = [];
 // Use splice to remove when they hit an enemy.
 // Or is this super unperformant.
 
+function Reset() {
+   score = 0;
+   lives = 3;
+   gameOver = false;
+   
+   player.yPos = 200;
+   bandits = [];
+   arrows = [];
+   
+   framesSinceLastBandit = 100;
+   framesSinceLastArrow = 100;
+   banditFrequency = 150;
+}
+
 var gameArea = {
    // When called from the event handler, this refers to document, not gameArea.
    start : function() {
       gameArea.canvas = document.getElementById("GameCanvas");
       gameArea.context = gameArea.canvas.getContext("2d");
       gameArea.interval = setInterval(updateGameState, 20);
+   },
+   
+   end : function() {
+      gameOver = true;
+      if (typeof(Storage) != "undefined") {
+         sessionStorage.setItem("lastScore", score);  
+      } else {
+		  gameArea.context.fillStyle = "Black";
+		  gameArea.context.font = "30 px Helvetica";
+		  gameArea.context.textAlign = "center";
+		  gameArea.context.fillText("Game over!/n Click to restart.", gameArea.canvas.width/2, gameArea.canvas.height/2); 
+	  }
    }
 }
 
 function updateGameState() {
-	UpdatePositions();
-	DrawBackground();
-	DrawObjects();
+   UpdatePositions();
+   DrawBackground();
+   DrawObjects();
+
+   if (lives <= 0) {
+      clearInterval(gameArea.interval);
+	  gameArea.end();
+   }
 }
 
 function UpdatePlayerPosition() {
@@ -60,6 +92,7 @@ function UpdateBanditPosition(object, speed) {
           arrows[i].yPos >= (object.yPos - object.radius) &&
           arrows[i].yPos <= (object.yPos + object.radius)) {
          arrows.splice(i, 1);
+         score = score + object.pointVal;
          return false;
       }
    }
@@ -116,12 +149,33 @@ function DrawCircle(object) {
    gameArea.context.fill();
 }
 
+function DisplayText(context, text, xPos, yPos) {
+	context.fillStyle = "#000000";
+	context.font = "12px Helvetica";
+	context.textAlign = "left";
+	context.fillText(text, xPos, yPos);
+}
+
+function DrawLives() {
+   gameArea.context.fillStyle = "red";
+   for (var i = 0; i < lives; ++i) {
+      gameArea.context.beginPath();
+      gameArea.context.moveTo(20 + (i * 40), 35);
+      gameArea.context.lineTo(10 + (i * 40), 20);
+      gameArea.context.arc(15 + (i * 40), 20, 5, Math.PI, 2 * Math.PI);
+      gameArea.context.arc(25 + (i * 40), 20, 5, Math.PI, 2 * Math.PI);
+      gameArea.context.lineTo(20 + (i * 40), 35);
+      gameArea.context.fill();
+   }
+}
+
 function DrawObjects() {
+   DrawLives();
+   DisplayText(gameArea.context, score.toString(), 650, 30);
    DrawCircle(player);
    for (var i = 0; i < bandits.length; ++i) {
       DrawCircle(bandits[i]);
    }
-   
    
    gameArea.context.strokeStyle = "black";
    for (var i = 0; i < arrows.length; ++i) {
@@ -138,20 +192,27 @@ function DrawObjects() {
 
 document.addEventListener("DOMContentLoaded", gameArea.start, false);
 window.addEventListener("keydown", function(e) {
-   if (e.keyCode == 38) {
-      player.speed = -2;
-   } else if (e.keyCode == 40) {
-      player.speed = 2;	   
-   } else if (e.keyCode == 32) {
-      if (framesSinceLastArrow > 10) {
-		 framesSinceLastArrow = 0;
-         var newArrow = {
-            xPos : player.xPos,
-		    yPos : player.yPos,
-            length : 5,
-	     };
-         arrows.push(newArrow);
-	  }
+   if (gameOver != true) {
+      if (e.keyCode == 38) {
+         player.speed = -2;
+      } else if (e.keyCode == 40) {
+         player.speed = 2;	   
+      } else if (e.keyCode == 32) {
+         if (framesSinceLastArrow > 10) {
+		    framesSinceLastArrow = 0;
+            var newArrow = {
+               xPos : player.xPos,
+		       yPos : player.yPos,
+	        };
+            arrows.push(newArrow);
+	     }
+      }
+   } else {
+     if (typeof(Storage)) {
+         window.location.href = "saveScore.html";
+      } else {
+         Reset();
+      }
    }
 });
 window.addEventListener("keyup", function(e) {
