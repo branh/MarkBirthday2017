@@ -3,7 +3,9 @@ var lives = 3;
 var gameOver = false;
 
 var banditFrequency = 150;
+var bossFrequency = 1000;
 var framesSinceLastBandit = 100;
+var framesSinceLastBoss = 500;
 var framesSinceLastArrow = 100;
 
 var player = {
@@ -32,8 +34,11 @@ function Reset() {
    arrows = [];
    
    framesSinceLastBandit = 100;
+   framesSinceLastBoss = 500;
    framesSinceLastArrow = 100;
    banditFrequency = 150;
+
+   gameArea.interval = setInterval(updateGameState, 20);   
 }
 
 var gameArea = {
@@ -46,18 +51,15 @@ var gameArea = {
    
    end : function() {
       gameOver = true;
-      if (typeof(Storage) != "undefined") {
-         sessionStorage.setItem("lastScore", score);  
-      } else {
-		  gameArea.context.fillStyle = "Black";
-		  gameArea.context.font = "30 px Helvetica";
-		  gameArea.context.textAlign = "center";
-		  gameArea.context.fillText("Game over!/n Click to restart.", gameArea.canvas.width/2, gameArea.canvas.height/2); 
-	  }
+      gameArea.context.fillStyle = "Black";
+      gameArea.context.font = "30 px Helvetica";
+      gameArea.context.textAlign = "center";
+      gameArea.context.fillText("Game over!\n Press any key to restart.", gameArea.canvas.width/2, gameArea.canvas.height/2); 
    }
 }
 
 function updateGameState() {
+   var tempScore = score;
    UpdatePositions();
    DrawBackground();
    DrawObjects();
@@ -65,6 +67,9 @@ function updateGameState() {
    if (lives <= 0) {
       clearInterval(gameArea.interval);
 	  gameArea.end();
+   } else if (tempScore < score) {
+      banditFrequency = Math.max(30, 150 - (score / 100));
+	  bossFrequency = Math.max(60, 1000 - (score / 50));
    }
 }
 
@@ -92,9 +97,13 @@ function UpdateBanditPosition(object, speed) {
           arrows[i].yPos >= (object.yPos - object.radius) &&
           arrows[i].yPos <= (object.yPos + object.radius)) {
          arrows.splice(i, 1);
-         score = score + object.pointVal;
-         return false;
+		 object.life = object.life - 1;
       }
+   }
+   
+   if (object.life <= 0) {
+      score += object.pointVal;
+      return false;	  
    }
    return true;
 }
@@ -102,6 +111,7 @@ function UpdateBanditPosition(object, speed) {
 function UpdatePositions() {
    UpdatePlayerPosition();
    framesSinceLastBandit++;
+   framesSinceLastBoss++;
    framesSinceLastArrow++;
    if (framesSinceLastBandit >= banditFrequency) {
       framesSinceLastBandit = 0;
@@ -111,9 +121,24 @@ function UpdatePositions() {
 		 yPos : banditYPos,
          radius: 7,
 		 color: "black",
-         pointVal : 5
+         pointVal : 5,
+		 life : 1
 	  };
       bandits.push(newBandit);
+   }
+   
+   if (framesSinceLastBoss >= bossFrequency) {
+      framesSinceLastBoss = 0;
+	  banditYPos = Math.floor(400 * Math.random());
+	  var newBoss = {
+         xPos : 750,
+         yPos : banditYPos,
+         radius : 10,
+		 color : "blue",
+         pointVal : 15,
+         life : 5
+      }
+      bandits.push(newBoss);
    }
    
    while (arrows.length > 0 && arrows[0].xPos > 750) {
@@ -192,7 +217,7 @@ function DrawObjects() {
 
 document.addEventListener("DOMContentLoaded", gameArea.start, false);
 window.addEventListener("keydown", function(e) {
-   if (gameOver != true) {
+   if (gameOver == false) {
       if (e.keyCode == 38) {
          player.speed = -2;
       } else if (e.keyCode == 40) {
@@ -208,11 +233,7 @@ window.addEventListener("keydown", function(e) {
 	     }
       }
    } else {
-     if (typeof(Storage)) {
-         window.location.href = "saveScore.html";
-      } else {
-         Reset();
-      }
+      Reset();
    }
 });
 window.addEventListener("keyup", function(e) {
