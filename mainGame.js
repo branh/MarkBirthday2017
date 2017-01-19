@@ -3,9 +3,9 @@ var lives = 3;
 var gameOver = false;
 
 var banditFrequency = 150;
-var bossFrequency = 1000;
-var framesSinceLastBandit = 100;
-var framesSinceLastBoss = 500;
+var bossFrequency = 700;
+var framesSinceLastBandit = 140;
+var framesSinceLastBoss = 300;
 var framesSinceLastArrow = 100;
 
 var player = {
@@ -33,10 +33,11 @@ function Reset() {
    bandits = [];
    arrows = [];
    
-   framesSinceLastBandit = 100;
-   framesSinceLastBoss = 500;
+   framesSinceLastBandit = 140;
+   framesSinceLastBoss = 300;
    framesSinceLastArrow = 100;
    banditFrequency = 150;
+   bossFrequency = 700;
 
    gameArea.interval = setInterval(updateGameState, 20);   
 }
@@ -69,7 +70,7 @@ function updateGameState() {
 	  gameArea.end();
    } else if (tempScore < score) {
       banditFrequency = Math.max(30, 150 - (score / 100));
-	  bossFrequency = Math.max(60, 1000 - (score / 50));
+	  bossFrequency = Math.max(60, 700 - (score / 50));
    }
 }
 
@@ -133,11 +134,20 @@ function UpdatePositions() {
 	  var newBoss = {
          xPos : 750,
          yPos : banditYPos,
-         radius : 10,
+         radius : 4,
 		 color : "blue",
          pointVal : 15,
-         life : 5
+         life : 2
       }
+	  var newBossShell = {
+         xPos : 750,
+         yPos : banditYPos,
+         radius : 7,
+         color : "LightBlue",
+         pointVal : 0,
+         life : 3	 
+      }
+      bandits.push(newBossShell);
       bandits.push(newBoss);
    }
    
