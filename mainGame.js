@@ -2,10 +2,10 @@ var score = 0;
 var lives = 3;
 var gameOver = false;
 
-var banditFrequency = 100;
-var bossFrequency = 500;
-var framesSinceLastBandit = 140;
-var framesSinceLastBoss = 300;
+var banditFrequency = 75;
+var bossFrequency = 375;
+var framesSinceLastBandit = 40;
+var framesSinceLastBoss = 200;
 var framesSinceLastArrow = 100;
 
 var player = {
@@ -33,11 +33,11 @@ function Reset() {
    bandits = [];
    arrows = [];
    
-   framesSinceLastBandit = 140;
-   framesSinceLastBoss = 300;
+   banditFrequency = 75;
+   bossFrequency = 375;
+   framesSinceLastBandit = 40;
+   framesSinceLastBoss = 200;
    framesSinceLastArrow = 100;
-   banditFrequency = 100;
-   bossFrequency = 500;
 
    gameArea.interval = setInterval(updateGameState, 20);   
 }
@@ -55,7 +55,8 @@ var gameArea = {
       gameArea.context.fillStyle = "Black";
       gameArea.context.font = "30 px Helvetica";
       gameArea.context.textAlign = "center";
-      gameArea.context.fillText("Game over!\n Press any key to restart.", gameArea.canvas.width/2, gameArea.canvas.height/2); 
+      gameArea.context.fillText("Game over!", gameArea.canvas.width/2, gameArea.canvas.height/2); 
+	  gameArea.context.fillText("Press any letter to start.",  gameArea.canvas.width/2, gameArea.canvas.height/2 + 45);
    }
 }
 
@@ -69,8 +70,8 @@ function updateGameState() {
       clearInterval(gameArea.interval);
 	  gameArea.end();
    } else if (tempScore < score) {
-      banditFrequency = Math.max(30, 150 - (score / 10));
-	  bossFrequency = Math.max(60, 500 - (score / 5));
+      banditFrequency = Math.max(30, 75 - (score / 10));
+      bossFrequency = Math.max(45, 375 - (score / 5));
    }
 }
 
@@ -120,7 +121,7 @@ function UpdatePositions() {
 	  var newBandit = {
          xPos : 750,
 		 yPos : banditYPos,
-         radius: 15,
+         radius: 10,
 		 color: "black",
          pointVal : 5,
 		 life : 1
@@ -134,7 +135,7 @@ function UpdatePositions() {
 	  var newBoss = {
          xPos : 750,
          yPos : banditYPos,
-         radius : 10,
+         radius : 8,
 		 color : "blue",
          pointVal : 15,
          life : 2
@@ -142,7 +143,7 @@ function UpdatePositions() {
 	  var newBossShell = {
          xPos : 750,
          yPos : banditYPos,
-         radius : 15,
+         radius : 12,
          color : "LightBlue",
          pointVal : 0,
          life : 3	 
@@ -155,11 +156,11 @@ function UpdatePositions() {
       arrows.shift();
    }
    for (var i = 0; i < arrows.length; ++i) {
-      arrows[i].xPos = arrows[i].xPos + 1;
+      arrows[i].xPos = arrows[i].xPos + 2;
    }
    
    for (var i = 0; i < bandits.length; ++i) {
-      if (!UpdateBanditPosition(bandits[i], 0.5)) {
+      if (!UpdateBanditPosition(bandits[i], 0.75)) {
          bandits.splice(i, 1);
       }
    }
@@ -242,7 +243,7 @@ window.addEventListener("keydown", function(e) {
             arrows.push(newArrow);
 	     }
       }
-   } else {
+   } else if (e.keyCode != 38 && e.keyCode != 40 && e.keyCode != 32) {
       Reset();
    }
 });
